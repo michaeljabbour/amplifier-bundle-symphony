@@ -5,7 +5,7 @@ bundle:
 
 tools:
   - module: tool-symphony
-    source: ./modules/tool-symphony
+    source: ../modules/tool-symphony
     config:
       symphony_url: ${SYMPHONY_URL:-http://localhost:4000}
       timeout_seconds: 30
