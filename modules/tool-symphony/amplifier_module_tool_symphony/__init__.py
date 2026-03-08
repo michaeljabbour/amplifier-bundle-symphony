@@ -151,7 +151,7 @@ async def mount(coordinator: Any, config: dict[str, Any] | None = None) -> Any:
     client = SymphonyClient(url, timeout=timeout, connect_timeout=connect_timeout)
     tool = SymphonyTool(client)
 
-    await coordinator.mount("tool", tool, name=tool.name)
+    await coordinator.mount("tools", tool, name=tool.name)
 
     async def cleanup() -> None:
         await client.close()
