@@ -1,0 +1,39 @@
+name: symphony-status-report
+description: Collect and format a status report from Symphony showing running issues, retry queue, and token usage
+version: "1.0"
+
+steps:
+  - name: collect-status
+    agent: symphony:symphony-operator
+    prompt: |
+      Collect a complete status snapshot from Symphony:
+      1. Call symphony(operation="status") to get the full system state
+      2. Summarize: how many issues are running, how many retrying, total token usage
+      3. For each running issue: identifier, state, how long running, last event
+      4. For each retrying issue: identifier, attempt number, error reason, next retry time
+      5. Flag any issues that look stalled (no events in >5 minutes)
+      
+      Return the raw data plus your summary.
+    output: status_data
+    timeout: 60
+
+  - name: format-report
+    prompt: |
+      Format the following Symphony status data as a concise standup-style report:
+      
+      {{status_data}}
+      
+      Format as:
+      ## Symphony Status Report
+      **Summary**: [N running, M retrying, X total tokens]
+      
+      ### Running Issues
+      [table: identifier | state | duration | last event]
+      
+      ### Retry Queue
+      [table: identifier | attempt | error | next retry]
+      
+      ### Alerts
+      [any stalled or concerning issues]
+    output: report
+    timeout: 30

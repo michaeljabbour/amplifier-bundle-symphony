@@ -1,0 +1,51 @@
+name: issue-handoff
+description: Hand off work to Symphony by verifying an issue is ready, triggering a refresh, and monitoring until acknowledged
+version: "1.0"
+
+context:
+  issue_identifier:
+    description: The Linear issue identifier to hand off (e.g., MT-649)
+    required: true
+
+steps:
+  - name: verify-issue
+    prompt: |
+      Verify that issue {{issue_identifier}} is ready for Symphony handoff:
+      
+      1. Check that the identifier follows the expected format (e.g., ABC-123)
+      2. Confirm the issue exists and has required fields (title, description, acceptance criteria)
+      3. Note any potential blockers or missing information
+      
+      Return: ready (boolean), blockers (list of issues found, empty if none)
+    output: verification
+    timeout: 30
+
+  - name: dispatch-to-symphony
+    agent: symphony:symphony-operator
+    prompt: |
+      Issue {{issue_identifier}} has been verified for handoff.
+      Verification result: {{verification}}
+      
+      1. Call symphony(operation="refresh") to trigger an immediate poll cycle
+      2. Wait a few seconds, then call symphony(operation="issue", identifier="{{issue_identifier}}") to check if Symphony has picked it up
+      3. If Symphony shows the issue as running or claimed, report success
+      4. If Symphony doesn't show the issue, check symphony(operation="status") for any errors or capacity issues
+      
+      Return: dispatch status, workspace info if available, any errors encountered
+    output: dispatch_result
+    timeout: 120
+
+  - name: report-handoff
+    prompt: |
+      Summarize the handoff of issue {{issue_identifier}} to Symphony:
+      
+      Verification: {{verification}}
+      Dispatch result: {{dispatch_result}}
+      
+      Format as a clear handoff report:
+      - Was the issue ready? Any blockers found?
+      - Did Symphony acknowledge it? Workspace created?
+      - Current status in Symphony
+      - Any follow-up actions needed
+    output: handoff_report
+    timeout: 30

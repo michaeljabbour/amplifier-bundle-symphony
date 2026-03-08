@@ -1,0 +1,65 @@
+name: workspace-review
+description: Review what a Symphony agent produced for an issue by fetching workspace state and evaluating against acceptance criteria
+version: "1.0"
+
+context:
+  issue_identifier:
+    description: The Linear issue identifier to review (e.g., MT-649)
+    required: true
+
+steps:
+  - name: fetch-workspace-state
+    agent: symphony:symphony-operator
+    prompt: |
+      Fetch the complete workspace state for issue {{issue_identifier}}:
+      
+      1. Call symphony(operation="issue", identifier="{{issue_identifier}}") to get detailed issue info
+      2. Report: workspace path, current status, session details, recent events
+      3. Note any errors, stalls, or unusual patterns in the event history
+      4. Report token usage for this specific issue
+      
+      Return all available workspace and session data.
+    output: workspace_data
+    timeout: 60
+
+  - name: evaluate-output
+    agent: symphony:symphony-expert
+    prompt: |
+      Evaluate the work produced by Symphony's agent for issue {{issue_identifier}}.
+      
+      Workspace data from the operator:
+      {{workspace_data}}
+      
+      Evaluate against these criteria:
+      1. Did the agent complete its work? (check session status and recent events)
+      2. Were there excessive retries or stalls? (check attempt count and error history)
+      3. Is the token usage reasonable for the scope of work?
+      4. Are there any harness engineering concerns? (workspace isolation, session lifecycle)
+      5. Based on the event history, did the agent follow a logical approach?
+      
+      Provide a structured evaluation with a verdict: PASS, NEEDS_REVIEW, or FAIL.
+    output: evaluation
+    timeout: 90
+
+  - name: report-review
+    prompt: |
+      Create a review report for Symphony issue {{issue_identifier}}:
+      
+      Workspace data: {{workspace_data}}
+      Expert evaluation: {{evaluation}}
+      
+      Format as:
+      ## Workspace Review: {{issue_identifier}}
+      
+      **Verdict**: [PASS/NEEDS_REVIEW/FAIL]
+      
+      ### Summary
+      [One paragraph: what the agent did, how long it took, outcome]
+      
+      ### Findings
+      [Bullet list of specific observations from the evaluation]
+      
+      ### Recommendations
+      [What to do next: merge, rework, investigate, etc.]
+    output: review_report
+    timeout: 30
