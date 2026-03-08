@@ -1,0 +1,31 @@
+[project]
+name = "amplifier-module-tool-symphony"
+version = "0.1.0"
+description = "Symphony orchestration service tool for Amplifier"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+# amplifier-core is NOT listed -- it is a peer dependency provided by the host.
+dependencies = [
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "respx>=0.22",
+]
+
+[project.entry-points."amplifier.modules"]
+tool-symphony = "amplifier_module_tool_symphony:mount"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["amplifier_module_tool_symphony"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["../../tests/tool-symphony"]
