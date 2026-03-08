@@ -142,8 +142,8 @@ async def mount(coordinator: Any, config: dict[str, Any] | None = None) -> Any:
     from amplifier_module_tool_symphony.client import SymphonyClient
 
     cfg: dict[str, Any] = config or {}
-    url: str = cfg.get("symphony_url") or os.environ.get(
-        "SYMPHONY_URL", "http://localhost:4000"
+    url: str = os.environ.get("SYMPHONY_URL") or cfg.get(
+        "symphony_url", "http://localhost:4000"
     )
     timeout: float = float(cfg.get("timeout_seconds", 30))
     connect_timeout: float = float(cfg.get("connect_timeout_seconds", 5))
