@@ -26,6 +26,40 @@ class MockCoordinator:
         self.mounted.append({"category": category, "tool": tool, "name": name})
 
 
+class MockSymphonyClient:
+    """Minimal stand-in for SymphonyClient used in tool-level tests."""
+
+    def __init__(self) -> None:
+        self.status_response: dict[str, Any] = {
+            "running": [],
+            "retrying": [],
+            "codex_totals": {},
+        }
+        self.issue_response: dict[str, Any] = {
+            "issue_identifier": "MT-649",
+            "status": "running",
+        }
+        self.refresh_response: dict[str, Any] = {"queued": True}
+        self.closed: bool = False
+
+    async def get_status(self) -> dict[str, Any]:
+        return self.status_response
+
+    async def get_issue(self, identifier: str) -> dict[str, Any]:
+        return self.issue_response
+
+    async def refresh(self) -> dict[str, Any]:
+        return self.refresh_response
+
+    async def close(self) -> None:
+        self.closed = True
+
+
 @pytest.fixture
 def mock_coordinator() -> MockCoordinator:
     return MockCoordinator()
+
+
+@pytest.fixture
+def mock_symphony_client() -> MockSymphonyClient:
+    return MockSymphonyClient()
